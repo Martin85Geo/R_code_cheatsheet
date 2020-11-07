@@ -7,7 +7,7 @@
 
 # User-specific files
 .Ruserdata
-desktop.ini/
+
 
 # Example code in package build process
 *-Ex.R
@@ -41,6 +41,7 @@ vignettes/*.pdf
 
 # Ignoring directories in Git repositories on Windows
 test_code/
-_Flows_mapping/Token_mapboxAccessToken.R
+Token_mapboxAccessToken.R
+desktop.ini
 
 
