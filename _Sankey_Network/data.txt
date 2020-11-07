@@ -1,0 +1,7 @@
+x_year	stra_lc	y_area	allu_flow	order
+1990	f	37	3		1
+1990	g	37	6		2
+2000	f	49	6		3
+2000	g	42	5		4
+2010	f	35	5		5
+2010	g	40	8		6

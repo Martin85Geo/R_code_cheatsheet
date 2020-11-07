@@ -1,0 +1,158 @@
+---
+title: "Pachwork - a package laying out multiple ggplots"
+author: "Yingjie"
+date: "5/14/2020"
+output: 
+  html_document:
+    theme: united
+    toc: true
+    toc_float:
+      collapsed: false ## true
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+toc: true     # table of content true
+toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+number_sections: true  ## if you want number sections at each table header
+theme: united # many options for theme, this one is my favorite.
+highlight: tango  # specifies the syntax highlighting style
+css: my.css   # you can add your custom css, should be in same folder
+    
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+
+# hide message: message = FALSE
+# hide warning: warning = FALSE
+# hide all : include = FALSE
+# hide results : results = "hide" or results = FALSE
+ 
+```
+
+
+# Packages
+```{r}
+if(!require(devtools)) install.packages("devtools")
+# devtools::install_github("thomasp85/patchwork")
+
+library(ggplot2)
+library(patchwork)
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+)
+```
+
+
+
+# Plots
+```{r}
+# 0. Define custom color palette and prepare the data
+my3cols <- c("#E7B800", "#2E9FDF", "#FC4E07")
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+
+# 1. Create a box plot (bp)
+p <- ggplot(ToothGrowth, aes(x = dose, y = len))
+(bxp <- p + geom_boxplot(aes(color = dose)) +
+  scale_color_manual(values = my3cols))
+
+# 2. Create a dot plot (dp)
+(dp <- p + geom_dotplot(aes(color = dose, fill = dose), 
+                       binaxis='y', stackdir='center') +
+  scale_color_manual(values = my3cols) + 
+  scale_fill_manual(values = my3cols))
+
+# 3. Create a line plot
+(lp <- ggplot(economics, aes(x = date, y = psavert)) + 
+  geom_line(color = "#E46726")) 
+
+# 4. Density plot
+(dens <- ggplot(iris, aes(Sepal.Length)) +
+  geom_density(aes(color = Species)) +
+  scale_color_manual(values = my3cols))
+```
+
+
+## Horizontal layouts
+```{r}
+bxp + dens
+```
+
+
+## Vertical layouts
+```{r}
+bxp + dens + plot_layout(ncol = 1)
+
+```
+
+
+## Specify the dimensions of each plot
+### Change height of each subplot
+```{r}
+bxp + dens + plot_layout(ncol = 1, heights = c(1, 3))
+```
+
+
+### Change width of each subplot
+```{r}
+bxp + dens + plot_layout(ncol = 2, width = c(1, 2))
+```
+
+### Add space between plots
+```{r}
+bxp + plot_spacer() + dens
+
+```
+
+
+
+## Nested layouts
+  You can make nested plots layout by wrapping part of the plots in parentheses - in these cases the layout is scoped to the different nesting levels.
+```{r}
+lp + {                    ## as a sigle row
+  dens + {                ## dense plot and others in a 2nd row
+    bxp +
+    dp +
+    plot_layout(ncol = 1) ## bxp and dp in one col
+  }
+} +
+  plot_layout(ncol = 1)
+```
+
+
+## Advanced features
+  patchwork provides some other operators that might be of interest: - (not a subtract, but a hyphen) will behave like + but put the left and right side in the same nesting level (as opposed to putting the right side into the left sides nesting level).
+```{r}
+bxp + dp - lp  ## width at 1, 1, 2
+bxp + dp - lp + plot_layout(ncol = 1) ## bxp + dens and lp is on the same level
+```
+
+Often you are interested in just putting plots besides or on top of each other. patchwork provides both | and / for horizontal and vertical layouts respectively. They can of course be combined for a very readable layout syntax
+```{r}
+(bxp | lp | dp) / dens
+
+(bxp | lp ) / (dp | dens)
+
+```
+
+### Operators for theme
+There are two additional operators that are used for a slightly different purpose, namely to reduce code repetition. Consider the case where you want to change the theme for all plots in an assemble.
+
+Instead of modifying all plots individually you can use & or * to add elements to all subplots. The two differ in that * will *only* affect the plots on the current nesting level:
+```{r}
+(bxp + (dp + dens) + lp + plot_layout(ncol = 1)) * theme_gray()
+
+```
+
+
+whereas & will recurse into nested levels:
+```{r}
+(bxp + (dp + dens) + lp + plot_layout(ncol = 1)) & theme_gray()
+```
+
+
+# Ref
+https://www.datanovia.com/en/blog/ggplot-multiple-plots-made-ridiculuous-simple-using-patchwork-r-package/
